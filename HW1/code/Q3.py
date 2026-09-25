@@ -27,7 +27,7 @@ def plot_():
 
     plt.loglog(t, rem)
     plt.grid(True, which='both', alpha=0.3)
-    plt.savefig('results/loglogerror.pdf')
+    plt.savefig('v_math329/HW1/results/loglogerror.pdf')
     plt.show()
     print(f"slope on 1e-3 <= t <= 1e-1: {slope}")
 

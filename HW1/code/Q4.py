@@ -24,7 +24,7 @@ def GD(theta0, lr, max_time, tol, x_dat, y_label):
     y_label = np.asarray(y_label, dtype='float')
 
     g0 = f_gradV(theta=theta, x_dat=x_dat, y_label=y_label)
-    histry = {"theta": [theta.copy()], "f": [funcV(theta, x_dat, y_label)], "gnorm": [], "iteration": []}
+    histry = {"theta": [], "f": [], "gnorm": [], "iteration": []}
 
     timeout = time.time() + 60 * max_time # inspo from the python time library documenation
     iter = 0
@@ -48,7 +48,7 @@ def GD(theta0, lr, max_time, tol, x_dat, y_label):
 
     return theta, histry
 
-def run_GD(lr=1e-3, tol=1e-3, path=r'data/mnist_train_test.mat'):
+def run_GD(lr=1e-3, tol=1e-3, path=r'v_math329\HW1\data\mnist_train_test.mat'):
     X_train, Y_train, X_test, Y_test = data_loader(path)
     rng = np.random.default_rng(seed=42)
 
@@ -60,7 +60,7 @@ def run_GD(lr=1e-3, tol=1e-3, path=r'data/mnist_train_test.mat'):
     final_theta, history = GD(theta0=theta0, lr=lr, max_time=3, x_dat=X_train, y_label=Y_train, tol=tol)
 
     plt.plot(history["iteration"], history["gnorm"])
-    plt.savefig('results/GD_.pdf')
+    plt.savefig('v_math329/HW1/results/GD_.pdf')
     plt.show()
 
     return final_theta, history
