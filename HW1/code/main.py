@@ -6,14 +6,14 @@ import numpy as np
 
 DATA_PATH = r'v_math329\HW1\data\mnist_train_test.mat'
 STEP_SIZE = 1e-3
-TOLERANCE = 1e-8
+TOLERANCE = 1e-3
 
 
 if __name__ == "__main__":
     verification()
     time_comp()
     plot_()
-    final_theta, history = run_GD()
+    final_theta, history = run_GD(lr=STEP_SIZE, tol=TOLERANCE)
 
     np.save('v_math329/HW1/results/final_theta.npy', final_theta)
     plot_convergence(path=DATA_PATH, history=history, lr=STEP_SIZE, tol=TOLERANCE)
