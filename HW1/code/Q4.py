@@ -24,8 +24,10 @@ def GD(theta0, lr, max_time, tol, x_dat, y_label):
     y_label = np.asarray(y_label, dtype='float')
 
     g0 = f_gradV(theta=theta, x_dat=x_dat, y_label=y_label)
+    g0_norm = np.linalg.norm(g0)
     histry = {"theta": [], "f": [], "gnorm": [], "iteration": []}
 
+    reason = "Timeout"
     timeout = time.time() + 60 * max_time # inspo from the python time library documenation
     iter = 0
 
@@ -33,8 +35,10 @@ def GD(theta0, lr, max_time, tol, x_dat, y_label):
         grad_ = f_gradV(theta=theta, x_dat=x_dat, y_label=y_label)
         gn = np.linalg.norm(grad_)
 
-        if gn <= gn * tol:
+        if gn <= g0_norm * tol:
             print(f"Gradient descent passed tolerance on iteration: {iter} with tol: {tol}")
+            reason = "Reached Tol"
+            break
 
         theta = theta - lr * grad_
         histry["gnorm"].append(gn)
@@ -46,21 +50,18 @@ def GD(theta0, lr, max_time, tol, x_dat, y_label):
             print(f"Iteration: {iter}, New gnorm value: {gn}")
         iter += 1
 
-    return theta, histry
+    return theta, histry, reason
 
 def run_GD(lr=1e-3, tol=1e-3, path=r'v_math329\HW1\data\mnist_train_test.mat'):
     X_train, Y_train, X_test, Y_test = data_loader(path)
     rng = np.random.default_rng(seed=42)
 
     theta0 = rng.uniform(low=-0.01, high=0.01, size=785)
-    lr = 1e-3
-    tol = 1e-3
 
-
-    final_theta, history = GD(theta0=theta0, lr=lr, max_time=3, x_dat=X_train, y_label=Y_train, tol=tol)
+    final_theta, history, reason = GD(theta0=theta0, lr=lr, max_time=3, x_dat=X_train, y_label=Y_train, tol=tol)
 
     plt.plot(history["iteration"], history["gnorm"])
     plt.savefig('v_math329/HW1/results/GD_.pdf')
     plt.show()
 
-    return final_theta, history
+    return final_theta, history, reason
