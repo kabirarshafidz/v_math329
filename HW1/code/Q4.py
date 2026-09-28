@@ -25,10 +25,10 @@ def GD(theta0, lr, max_time, tol, x_dat, y_label):
 
     g0 = f_gradV(theta=theta, x_dat=x_dat, y_label=y_label)
     g0_norm = np.linalg.norm(g0)
-    histry = {"theta": [], "f": [], "gnorm": [], "iteration": []}
+    histry = {"theta": [], "f": [], "gnorm": [], "iteration": [], "reason": []}
 
-    reason = "Timeout"
-    timeout = time.time() + 60 * max_time # inspo from the python time library documenation
+    timeout = time.time() + 60 * max_time #inspo from the python time library documenation
+    reason = f"Timeout at {max_time} minutes"
     iter = 0
 
     while time.time() <= timeout:
@@ -37,7 +37,7 @@ def GD(theta0, lr, max_time, tol, x_dat, y_label):
 
         if gn <= g0_norm * tol:
             print(f"Gradient descent passed tolerance on iteration: {iter} with tol: {tol}")
-            reason = "Reached Tol"
+            reason = f"Reached Tol: {tol}"
             break
 
         theta = theta - lr * grad_
@@ -50,7 +50,9 @@ def GD(theta0, lr, max_time, tol, x_dat, y_label):
             print(f"Iteration: {iter}, New gnorm value: {gn}")
         iter += 1
 
-    return theta, histry, reason
+    histry["reason"].append(reason)
+
+    return theta, histry
 
 def run_GD(lr=1e-3, tol=1e-3, path=r'v_math329\HW1\data\mnist_train_test.mat'):
     X_train, Y_train, X_test, Y_test = data_loader(path)
@@ -58,10 +60,28 @@ def run_GD(lr=1e-3, tol=1e-3, path=r'v_math329\HW1\data\mnist_train_test.mat'):
 
     theta0 = rng.uniform(low=-0.01, high=0.01, size=785)
 
-    final_theta, history, reason = GD(theta0=theta0, lr=lr, max_time=3, x_dat=X_train, y_label=Y_train, tol=tol)
+    final_theta, history = GD(theta0=theta0, lr=lr, max_time=3, x_dat=X_train, y_label=Y_train, tol=tol)
 
     plt.plot(history["iteration"], history["gnorm"])
-    plt.savefig('v_math329/HW1/results/GD_.pdf')
+    plt.savefig('v_math329/HW1/results/q4_GD_.pdf')
     plt.show()
 
-    return final_theta, history, reason
+    stopping_reason = history['reason']
+
+    n_iters = history['iteration'][-1]
+
+    header_lines = (
+        f"stopping_reason={stopping_reason}\n"
+        f"total_iterations={n_iters}\n"
+        "iteration,f,gnorm"
+    )
+
+    np.savetxt(
+        r'v_math329\HW1\results\q4_history.csv',
+        np.column_stack([history['iteration'], history['f'], history['gnorm']]),
+        delimiter=',', header=header_lines, comments='# '
+    )
+
+    np.save('v_math329/HW1/results/final_theta.npy', final_theta)
+
+    return final_theta, history
