@@ -7,7 +7,11 @@ def loss_loop(y, X, theta):
     total = 0
     for i in range(len(y)):
         s_i = 1 - 2 * y[i]
-        z_i = s_i * np.dot(X[i], theta)
+        
+        z_i = 0
+        for j in range(len(theta)):
+            z_i += X[i][j] * theta[j]
+        z_i *= s_i
 
         if z_i >= 0:
             total += 0.5 + z_i
@@ -31,10 +35,15 @@ def loss_regularized(y, X, theta, lambda_const, vectorized=True):
 
 
 def grad_loop(y, X, theta):
-    grad = np.zeros(len(theta))
+    grad = [0] * len(theta)
+    
     for i in range(len(y)):
         s_i = 1 - 2 * y[i]
-        z_i = s_i * np.dot(X[i], theta)
+        
+        z_i = 0
+        for j in range(len(theta)):
+            z_i += X[i][j] * theta[j]
+        z_i *= s_i
 
         phi_prime = 0
         if z_i >= 0:
@@ -42,7 +51,8 @@ def grad_loop(y, X, theta):
         elif z_i >= -1:
             phi_prime = 1 + z_i
 
-        grad += s_i * phi_prime * X[i]
+        for j in range(len(theta)):
+            grad[j] += s_i * phi_prime * X[i][j]
 
     return grad
 
