@@ -1,0 +1,8 @@
+sigma_max(X) = 891.227264
+L = 794286.040314
+mu = 0.005
+kappa = 1.588572e+08
+1/L (theorem step) = 1.258992e-06
+lr used = 1.000000e-03
+rho = 1 - 1/kappa = 0.9999999937
+f_star_approx (proxy, last observed f) = 1247.580213
