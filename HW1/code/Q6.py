@@ -22,10 +22,10 @@ def compare_theory_vs_observed(history, L, mu):
     gap_predicted = rho**iters[k_check] * (f_vals[0] - f_star)
     gap_observed = f_vals[k_check] - f_star
 
-    print(f"kappa = {kappa:.4e}, rho = 1-1/kappa = {rho:.10f}")
+    print(f"kappa = {kappa}, rho = 1-1/kappa = {rho}")
     print(f"at k={iters[k_check]} iterations (halfway through the run):")
-    print(f"theorem predicts gap = {gap_predicted:.4e}")
-    print(f"observed gap = {gap_observed:.4e}")
+    print(f"theorem predicts gap = {gap_predicted}")
+    print(f"observed gap = {gap_observed}")
 
 
 def q6_compare(path, lam=0.005, lr=1e-3, tol=1e-3):

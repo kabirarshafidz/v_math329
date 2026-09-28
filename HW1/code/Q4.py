@@ -64,7 +64,6 @@ def run_GD(lr=1e-3, tol=1e-3, path=r'v_math329\HW1\data\mnist_train_test.mat'):
 
     plt.plot(history["iteration"], history["gnorm"])
     plt.savefig('v_math329/HW1/results/q4_GD_.pdf')
-    plt.show()
 
     stopping_reason = history['reason']
 
