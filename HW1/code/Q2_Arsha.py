@@ -1,7 +1,5 @@
-import time
-
+import timeit
 import numpy as np
-
 from load_file import load_data
 
 
@@ -26,11 +24,10 @@ def loss_vectorized(y, X, theta):
 
 
 def loss_regularized(y, X, theta, lambda_const, vectorized=True):
-    data_loss = 0
     if vectorized:
         return loss_vectorized(y, X, theta) + (lambda_const / 2) * np.dot(theta, theta)
-    else:
-        return loss_loop(y, X, theta) + (lambda_const / 2) * np.dot(theta, theta)
+        
+    return loss_loop(y, X, theta) + (lambda_const / 2) * np.dot(theta, theta)
 
 
 def grad_loop(y, X, theta):
@@ -60,8 +57,8 @@ def grad_vectorized(y, X, theta):
 def grad_regularized(y, X, theta, lambda_const, vectorized=True):
     if vectorized:
         return grad_vectorized(y, X, theta) + lambda_const * theta
-    else:
-        return grad_loop(y, X, theta) + lambda_const * theta
+        
+    return grad_loop(y, X, theta) + lambda_const * theta
 
 
 def verify(y, X, rng, lambda_const=0.005, trials=5, tol=1e-10):
@@ -69,8 +66,8 @@ def verify(y, X, rng, lambda_const=0.005, trials=5, tol=1e-10):
     rel_losses = []
     rel_grads = []
 
-    for _ in range(trials):
-        theta = 0.01 * rng.standard_normal(d)
+    for trial in range(trials):
+        theta = 0.1 * rng.standard_normal(d)
 
         l_loop = loss_regularized(y, X, theta, lambda_const, vectorized=False)
         l_vec = loss_regularized(y, X, theta, lambda_const)
@@ -83,7 +80,7 @@ def verify(y, X, rng, lambda_const=0.005, trials=5, tol=1e-10):
         rel_grad = np.linalg.norm(g_loop - g_vec) / np.linalg.norm(g_loop)
         rel_grads.append(rel_grad)
 
-        print(rel_loss, rel_grad, np.allclose(g_loop, g_vec))
+        print(f"trial {trial}: rel loss err {rel_loss:.2e}, rel grad err {rel_grad:.2e}")
 
     print(f"max rel loss err: {max(rel_losses):.2e}")
     print(f"max rel grad err: {max(rel_grads):.2e}")
@@ -91,16 +88,11 @@ def verify(y, X, rng, lambda_const=0.005, trials=5, tol=1e-10):
 
 
 def bench(fn, *args, repeats=5):
-    times = []
-    for _ in range(repeats):
-        t0 = time.perf_counter()
-        fn(*args)
-        times.append(time.perf_counter() - t0)
-    return min(times)          # min = least disturbed by other processes
+    return min(timeit.repeat(lambda: fn(*args), number=1, repeat=repeats))
 
 
 def time_comparison(y, X, rng, lambda_const=0.005):
-    theta = 0.01 * rng.standard_normal(X.shape[1])
+    theta = 0.1 * rng.standard_normal(X.shape[1])
 
     for name, fn in [("loss", loss_regularized), ("grad", grad_regularized)]:
         t_loop = bench(fn, y, X, theta, lambda_const, False)

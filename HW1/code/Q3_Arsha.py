@@ -40,7 +40,7 @@ def run_q3(seed=42):
     t = np.logspace(-8.0, 0.0, num=101)
     lambda_const = 0.005
 
-    theta = 0.01 * rng.standard_normal(d)
+    theta = 0.1 * rng.standard_normal(d)
 
     v = rng.standard_normal(d)
     v /= np.linalg.norm(v)
