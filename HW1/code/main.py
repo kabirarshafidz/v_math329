@@ -1,12 +1,12 @@
-from v_math329.HW1.code.Q2 import run_q2
-from v_math329.HW1.code.Q3 import run_q3
+from Q2 import run_q2
+from Q3 import run_q3
 from Q4 import run_GD
 from Q5 import q5_plot_convergence
 from Q6 import q6_compare
 from Q7 import q7_error_check
 
 DATA_PATH = '../data/mnist_train_test.mat'
-STEP_SIZE = 1e-3
+STEP_SIZE = 1e-6
 TOLERANCE = 1e-3
 
 

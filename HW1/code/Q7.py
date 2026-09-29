@@ -38,8 +38,8 @@ def q7_error_check(path, final_theta, results_dir='../results'):
     train_err = error_rate(final_theta, X_train, y_train)
     test_err = error_rate(final_theta, X_test, y_test)
 
-    print(f"train error rate = {train_err:.5f} ({train_err * 100:.2f}%)")
-    print(f"test error rate  = {test_err:.5f} ({test_err * 100:.2f}%)")
+    print(f"train error rate = {train_err} ({train_err * 100}%)")
+    print(f"test error rate  = {test_err} ({test_err * 100}%)")
 
     # Save output using robust cross-platform path resolution
     os.makedirs(results_dir, exist_ok=True)

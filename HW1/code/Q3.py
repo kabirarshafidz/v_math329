@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from load_file import load_data, RESULTS_DIR
-from v_math329.HW1.code.Q2 import loss_regularized, grad_regularized
+from Q2 import loss_regularized, grad_regularized
 
 
 def gradient_check(y, X, theta, v, t, lambda_const):
