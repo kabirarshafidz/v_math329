@@ -14,10 +14,9 @@ def error_rate(theta, X, y):
 
 def q7_error_check(path, final_theta):
     X_train, y_train, X_test, y_test = data_loader(path)
-    theta = final_theta
 
-    train_err = error_rate(theta, X_train, y_train)
-    test_err = error_rate(theta, X_test, y_test)
+    train_err = error_rate(final_theta, X_train, y_train)
+    test_err = error_rate(final_theta, X_test, y_test)
 
     print(f"train error rate = {train_err}")
     print(f"test error rate  = {test_err}")

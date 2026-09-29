@@ -44,7 +44,7 @@ def GD(theta0, lr, max_time, tol, x_dat, y_label):
         histry["gnorm"].append(gn)
         histry["theta"].append(theta.copy())
         histry["f"].append(funcV(theta, x_dat, y_label))
-        histry["iteration"].append(iter)
+        histry["iteration"].append(int(iter))
 
         if iter % 100 == 0:
             print(f"Iteration: {iter}, New gnorm value: {gn}")
