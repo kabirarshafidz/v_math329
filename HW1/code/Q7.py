@@ -34,11 +34,9 @@ def q7_error_check(path, final_theta, results_dir='../results'):
     """
     # Load training and test splits
     X_train, y_train, X_test, y_test = data_loader(path)
-    theta = final_theta
 
-    # Evaluate classification performance
-    train_err = error_rate(theta, X_train, y_train)
-    test_err = error_rate(theta, X_test, y_test)
+    train_err = error_rate(final_theta, X_train, y_train)
+    test_err = error_rate(final_theta, X_test, y_test)
 
     print(f"train error rate = {train_err:.5f} ({train_err * 100:.2f}%)")
     print(f"test error rate  = {test_err:.5f} ({test_err * 100:.2f}%)")
