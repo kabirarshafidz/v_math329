@@ -25,7 +25,7 @@ def GD(theta0, lr, max_time, tol, x_dat, y_label):
 
     g0 = f_gradV(theta=theta, x_dat=x_dat, y_label=y_label)
     g0_norm = np.linalg.norm(g0)
-    histry = {"theta": [], "f": [], "gnorm": [], "iteration": [], "reason": []}
+    histry = {"f": [], "gnorm": [], "iteration": [], "reason": []}
 
     timeout = time.time() + 60 * max_time #inspo from the python time library documenation
     reason = f"Timeout at {max_time} minutes"
@@ -35,6 +35,12 @@ def GD(theta0, lr, max_time, tol, x_dat, y_label):
         grad_ = f_gradV(theta=theta, x_dat=x_dat, y_label=y_label)
         gn = np.linalg.norm(grad_)
 
+        # Check if values are Nan or inf
+        if not np.isfinite(gn):
+            print(f"Gradient descent diverged on iteration {iter}")
+            reason = f"Diverged on {iter} ¡¡NOT GOOD!!"
+            break
+
         if gn <= g0_norm * tol:
             print(f"Gradient descent passed tolerance on iteration: {iter} with tol: {tol}")
             reason = f"Reached Tol: {tol}"
@@ -42,7 +48,6 @@ def GD(theta0, lr, max_time, tol, x_dat, y_label):
 
         theta = theta - lr * grad_
         histry["gnorm"].append(gn)
-        histry["theta"].append(theta.copy())
         histry["f"].append(funcV(theta, x_dat, y_label))
         histry["iteration"].append(int(iter))
 

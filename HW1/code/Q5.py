@@ -6,7 +6,6 @@ from Q4 import run_GD, data_loader
 
 def q5_plot_convergence(path, history=None, lr=1e-3, tol=1e-3):
     if history is None:
-        X_train, y_train, X_test, y_test = data_loader(path=path)
         _, history = run_GD(lr=lr, tol=tol, path=path)
 
     iters = history['iteration']
