@@ -1,5 +1,5 @@
 import numpy as np
-from Q2 import funcV, rand_gen_data, f_gradV
+from helper import funcV, f_gradV
 import time
 import matplotlib.pyplot as plt
 from scipy.io import loadmat

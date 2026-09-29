@@ -1,193 +1,196 @@
+import timeit
 import numpy as np
-import time
-
-
-def quad_smooth(x):
-    """
-    Evaluates the piecewise quadratic smoothed hinge loss phi(x).
-    
-    phi(x) = 
-        0                   if x < -1
-        0.5 * (1 + x)^2     if -1 <= x <= 0
-        x + 0.5             if x > 0
-    """
-    x = np.array(x, dtype='float')
-    z = np.zeros_like(x)
-    # Quadratic transition region: smooth approximation between flat and linear parts
-    mask_mid = (x >= -1) & (x <= 0)
-    z[mask_mid] = 0.5 * (1 + x[mask_mid]) ** 2
-    # Linear region: slope of 1
-    z[x > 0] = x[x > 0] + 0.5
-
-    return z
-
-
-def qs_grad(x): 
-    """
-    Evaluates the derivative of the smoothed hinge loss phi'(x).
-    
-    phi'(x) = 
-        0       if x < -1
-        1 + x   if -1 <= x <= 0
-        1       if x > 0
-    """
-    x = np.array(x, dtype='float')
-    z = np.zeros_like(x)
-    # Derivative in the quadratic region
-    mask_mid = (x >= -1) & (x <= 0)
-    z[mask_mid] = 1 + x[mask_mid]
-    # Derivative in the linear region
-    z[x > 0] = 1
-
-    return z
+from load_file import load_data
 
 
 # ==========================================
 # NON-VECTORIZED IMPLEMENTATIONS (FOR-LOOPS)
 # ==========================================
 
-def funcNv(theta, x_dat, y_label, lam=0.005):
+def loss_loop(y, X, theta):
     """
-    Computes the regularized objective value using an explicit loop over samples.
+    Computes the unregularized smoothed hinge loss using explicit nested loops.
     
-    Objective: f_lambda(theta) = sum_i phi(s_i * <x_i, theta>) + (lam / 2) * ||theta||^2
-    where s_i = 1 - 2 * y_i.
+    phi(z) =
+        0                   if z < -1
+        0.5 * (1 + z)^2     if -1 <= z < 0
+        0.5 + z             if z >= 0
+    where z_i = s_i * <x_i, theta> and s_i = 1 - 2*y_i.
     """
-    total_qs = 0.0
-    for i in range(len(x_dat)):
-        # Map label y in {0, 1} to sign s in {+1, -1}
-        s_i = 1 - 2 * y_label[i]
-        # Linear score for sample i: s_i * <x_i, theta>
-        margin = s_i * np.dot(x_dat[i], theta)
-        total_qs += quad_smooth(margin)
-
-    # Add L2 regularization penalty
-    return total_qs + 0.5 * lam * np.dot(theta, theta)
-
-
-def f_gradNv(theta, x_dat, y_label, lam=0.005):
-    """
-    Computes the gradient of the objective using an explicit loop over samples.
-    
-    Gradient: nabla f_lambda(theta) = sum_i s_i * phi'(s_i * <x_i, theta>) * x_i + lam * theta
-    """
-    total_qs_grad = np.zeros(len(theta))
-    for i in range(len(x_dat)):
-        s_i = 1 - 2 * y_label[i]
-        margin = s_i * np.dot(x_dat[i], theta)
-        # Scalar derivative phi'(s_i * <x_i, theta>)
-        c = float(qs_grad(margin))
-        # Accumulate contribution to gradient vector
-        total_qs_grad += c * s_i * x_dat[i]
+    total = 0.0
+    for i in range(len(y)):
+        s_i = 1 - 2 * y[i]
         
-    # Add L2 regularization gradient
-    return total_qs_grad + lam * theta
+        # Inner loop: scalar dot product <x_i, theta>
+        z_i = 0.0
+        for j in range(len(theta)):
+            z_i += X[i][j] * theta[j]
+        z_i *= s_i
+
+        # Piecewise quadratic smoothing evaluation
+        if z_i >= 0:
+            total += 0.5 + z_i
+        elif z_i >= -1:
+            total += 0.5 * (1 + z_i) ** 2
+
+    return total
+
+
+def grad_loop(y, X, theta):
+    """
+    Computes the gradient of the unregularized loss using explicit nested loops.
+    
+    phi'(z) =
+        0       if z < -1
+        1 + z   if -1 <= z < 0
+        1       if z >= 0
+    Gradient: sum_i s_i * phi'(z_i) * x_i.
+    """
+    grad = [0.0] * len(theta)
+    
+    for i in range(len(y)):
+        s_i = 1 - 2 * y[i]
+        
+        # Inner loop: scalar dot product <x_i, theta>
+        z_i = 0.0
+        for j in range(len(theta)):
+            z_i += X[i][j] * theta[j]
+        z_i *= s_i
+
+        # Evaluate scalar derivative phi'(z_i)
+        phi_prime = 0.0
+        if z_i >= 0:
+            phi_prime = 1.0
+        elif z_i >= -1:
+            phi_prime = 1.0 + z_i
+
+        # Accumulate sample contribution to gradient vector
+        for j in range(len(theta)):
+            grad[j] += s_i * phi_prime * X[i][j]
+
+    return np.array(grad)
 
 
 # ==========================================
 # VECTORIZED IMPLEMENTATIONS (MATRIX OPS)
 # ==========================================
 
-def funcV(theta, x_dat, y_label, lam=0.005):
+def loss_vectorized(y, X, theta):
     """
-    Computes the regularized objective value using vectorized NumPy operations.
+    Computes the unregularized smoothed hinge loss across all samples via matrix-vector ops.
     """
-    # Vector of signs s in {+1, -1}^n
-    s = 1 - 2 * y_label
-    # Margins for all samples computed simultaneously: s * (X @ theta)
-    margins = s * (x_dat @ theta)
-    # Sum of losses plus L2 regularization term
-    return np.sum(quad_smooth(margins)) + (lam / 2.0) * np.linalg.norm(theta) ** 2
+    # Vectorized margins: z in R^n where z_i = s_i * <x_i, theta>
+    z = (1 - 2 * y) * (X @ theta)
+    
+    # Piecewise conditional evaluations applied elementwise
+    return np.sum(np.where(z >= 0, 0.5 + z,
+                  np.where(z >= -1, 0.5 * (1 + z) ** 2, 0.0)))
 
 
-def f_gradV(theta, x_dat, y_label, lam=0.005):
+def grad_vectorized(y, X, theta):
     """
-    Computes the gradient of the objective using vectorized NumPy operations.
+    Computes the gradient of the unregularized loss across all samples via matrix-vector ops.
     """
-    s = 1 - 2 * y_label
-    margins = s * (x_dat @ theta)
-    # Scalar weight per sample: s_i * phi'(margins_i)
-    weights = qs_grad(margins) * s
-    # Gradient: X.T @ weights + lam * theta
-    return lam * theta + x_dat.T @ weights
+    s = 1 - 2 * y
+    z = s * (X @ theta)
+    
+    # Sample-wise scalar weights: w_i = s_i * phi'(z_i)
+    weights = s * np.where(z >= 0, 1.0, np.where(z >= -1, 1.0 + z, 0.0))
+    
+    # Matrix product equivalent to sum_i w_i * x_i
+    return X.T @ weights
+
+
+# ==========================================
+# REGULARIZED WRAPPERS
+# ==========================================
+
+def loss_regularized(y, X, theta, lambda_const, vectorized=True):
+    """
+    Evaluates regularized objective: f_lambda(theta) = Loss(theta) + (lambda / 2) * ||theta||^2.
+    """
+    if vectorized:
+        return loss_vectorized(y, X, theta) + (lambda_const / 2.0) * np.dot(theta, theta)
+        
+    return loss_loop(y, X, theta) + (lambda_const / 2.0) * np.dot(theta, theta)
+
+
+def grad_regularized(y, X, theta, lambda_const, vectorized=True):
+    """
+    Evaluates regularized gradient: nabla f_lambda(theta) = nabla Loss(theta) + lambda * theta.
+    """
+    if vectorized:
+        return grad_vectorized(y, X, theta) + lambda_const * theta
+        
+    return grad_loop(y, X, theta) + lambda_const * theta
 
 
 # ==========================================
 # VERIFICATION AND BENCHMARKING
 # ==========================================
 
-def rand_gen_data(n, d, seed):
+def verify(y, X, rng, lambda_const=0.005, trials=5, tol=1e-10):
     """
-    Generates synthetic feature data, binary labels, and parameter vectors for testing.
+    Verifies numerical agreement up to machine precision between loop and vectorized routines.
     """
+    d = X.shape[1]
+    rel_losses = []
+    rel_grads = []
+
+    for trial in range(trials):
+        # Draw random parameter vector from standard Gaussian
+        theta = 0.1 * rng.standard_normal(d)
+
+        # Compute values for both implementations
+        l_loop = loss_regularized(y, X, theta, lambda_const, vectorized=False)
+        l_vec = loss_regularized(y, X, theta, lambda_const, vectorized=True)
+        g_loop = grad_regularized(y, X, theta, lambda_const, vectorized=False)
+        g_vec = grad_regularized(y, X, theta, lambda_const, vectorized=True)
+
+        # Relative error computations
+        rel_loss = abs(l_loop - l_vec) / abs(l_loop)
+        rel_losses.append(rel_loss)
+
+        rel_grad = np.linalg.norm(g_loop - g_vec) / np.linalg.norm(g_loop)
+        rel_grads.append(rel_grad)
+
+        print(f"trial {trial}: rel loss err {rel_loss:.2e}, rel grad err {rel_grad:.2e}")
+
+    # Summary checks
+    print(f"max rel loss err: {max(rel_losses):.2e}")
+    print(f"max rel grad err: {max(rel_grads):.2e}")
+    print(f"agree within {tol:.0e} on all trials:", max(rel_losses) < tol and max(rel_grads) < tol)
+
+
+def bench(fn, *args, repeats=5):
+    """
+    Estimates runtime by taking the minimum execution duration over several repeats.
+    """
+    return min(timeit.repeat(lambda: fn(*args), number=1, repeat=repeats))
+
+
+def time_comparison(y, X, rng, lambda_const=0.005):
+    """
+    Measures and compares runtimes between explicit loops and vectorized routines.
+    """
+    theta = 0.1 * rng.standard_normal(X.shape[1])
+
+    for name, fn in [("loss", loss_regularized), ("grad", grad_regularized)]:
+        t_loop = bench(fn, y, X, theta, lambda_const, False)
+        t_vec = bench(fn, y, X, theta, lambda_const, True)
+        print(f"{name}: loop {t_loop:.4f}s, vec {t_vec:.4f}s, speedup {t_loop / t_vec:.1f}x")
+
+
+def run_q2(seed=42):
+    """
+    Loads dataset, verifies implementation consistency, and profiles run times.
+    """
+    X, y = load_data(verbose=True)
     rng = np.random.default_rng(seed)
-    X = rng.standard_normal((n, d))
-    # Append column of ones to account for intercept/bias
-    X = np.hstack([X, np.ones((n, 1))])
-    y = rng.integers(0, 2, size=n).astype(float)
-    theta = rng.standard_normal(d + 1)
 
-    return X, y, theta
+    verify(y, X, rng)
+    time_comparison(y, X, rng)
 
 
-def err_check(x, y):
-    """
-    Computes relative Euclidean error between two values or arrays.
-    """
-    x = np.asarray(x, dtype='float')
-    y = np.asarray(y, dtype='float')
-
-    # Normalize by max norm to prevent division by zero near origin
-    return np.linalg.norm(x - y) / max(np.linalg.norm(x), np.linalg.norm(y), 1.0)
-
-
-def verification():
-    """
-    Verifies numerical agreement between loop and vectorized implementations across random seeds.
-    """
-    tol = 1e-10
-
-    for i in range(20):
-        X, y, theta = rand_gen_data(n=400, d=200, seed=i)
-        lam = 0.005
-
-        # Objective check
-        a = funcNv(theta, X, y, lam)
-        b = funcV(theta, X, y, lam)
-        err_f = err_check(a, b)
-        print(f"[{'PASS' if err_f < tol else 'FAIL'}] Objective error: {err_f:.2e}")
-
-        # Gradient check
-        a = f_gradNv(theta, X, y, lam)
-        b = f_gradV(theta, X, y, lam)
-        err_g = err_check(a, b)
-        print(f"[{'PASS' if err_g < tol else 'FAIL'}] Gradient error:  {err_g:.2e}")
-
-
-def time_(f, *args):
-    """
-    Measures the wall-clock execution time of a single function call using perf_counter.
-    """
-    t0 = time.perf_counter()
-    f(*args)
-    return time.perf_counter() - t0
-
-
-def time_comp():
-    """
-    Benchmarks and prints execution times and speedups for loop vs vectorized functions.
-    """
-    t_f_loop, t_f_vec = [], []
-    t_g_loop, t_g_vec = [], []
-
-    for i in range(5):
-        X, y, theta = rand_gen_data(n=5000, d=200, seed=5)
-        lam = 0.0005
-
-        t_f_loop.append(time_(funcNv, theta, X, y, lam))
-        t_f_vec.append(time_(funcV, theta, X, y, lam))
-        t_g_loop.append(time_(f_gradNv, theta, X, y, lam))
-        t_g_vec.append(time_(f_gradV, theta, X, y, lam))
-
-    print(f"f loop: {np.mean(t_f_loop)*1e3:.2f} ms | vec: {np.mean(t_f_vec)*1e3:.2f} ms | speedup: {np.mean(t_f_loop)/np.mean(t_f_vec):.1f}x")
-    print(f"grad loop: {np.mean(t_g_loop)*1e3:.2f} ms | vec: {np.mean(t_g_vec)*1e3:.2f} ms | speedup: {np.mean(t_g_loop)/np.mean(t_g_vec):.1f}x")
+if __name__ == "__main__":
+    run_q2()
