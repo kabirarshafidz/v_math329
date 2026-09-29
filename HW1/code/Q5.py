@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def plot_convergence(path, history=None, lr=1e-3, tol=1e-3):
+def q5_plot_convergence(path, history=None, lr=1e-3, tol=1e-3):
     if history == None:
         X_train, y_train, X_test, y_test = data_loader(path=path)
 
