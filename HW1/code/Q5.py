@@ -13,17 +13,18 @@ def q5_plot_convergence(path, history=None, lr=1e-3, tol=1e-3):
     f_vals = history['f']
     gnorm_vals = history['gnorm']
 
-    # Dos subgráficas separadas (apiladas verticalmente)
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(7, 8), sharex=True)
+    # Two separate subplots 
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
 
-    # 1. Valor de la función objetivo
+    # 1. Objective function value
     ax1.semilogy(iters, f_vals, color='blue', label=r'$f_\lambda(\theta_k)$')
+    ax1.set_xlabel('Iteration $k$')
     ax1.set_ylabel(r'$f_\lambda(\theta_k)$ (log scale)')
     ax1.set_title('Objective Function Value vs Iteration')
     ax1.grid(True, which='both', alpha=0.3)
     ax1.legend()
 
-    # 2. Norma del gradiente
+    # 2. Gradient norm
     ax2.semilogy(iters, gnorm_vals, color='orange', label=r'$\|\nabla f_\lambda(\theta_k)\|$')
     ax2.set_xlabel('Iteration $k$')
     ax2.set_ylabel(r'$\|\nabla f_\lambda(\theta_k)\|$ (log scale)')
@@ -33,7 +34,7 @@ def q5_plot_convergence(path, history=None, lr=1e-3, tol=1e-3):
 
     plt.tight_layout()
 
-    # Guarda la figura en ../results resolviendo la ruta correctamente
+    # Save the figure in ../results resolving the path correctly
     save_dir = os.path.join('..', 'results')
     os.makedirs(save_dir, exist_ok=True)
     
