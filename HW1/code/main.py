@@ -5,7 +5,7 @@ from Q5 import q5_plot_convergence
 from Q6 import q6_compare
 from Q7 import q7_error_check
 
-DATA_PATH = r'v_math329\HW1\data\mnist_train_test.mat'
+DATA_PATH = '../data/mnist_train_test.mat'
 STEP_SIZE = 1e-3
 TOLERANCE = 1e-3
 
