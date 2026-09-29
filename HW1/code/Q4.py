@@ -66,9 +66,8 @@ def run_GD(lr=1e-3, tol=1e-3, path='../data/mnist_train_test.mat'):
     plt.xlabel("iteration k")
     plt.ylabel(r"$\|\nabla f_\lambda(\theta_k)\|$")
     plt.title("Gradient norm during GD")
-    plt.savefig('v_math329/HW1/results/q4_GD_(optional).pdf')
+    plt.savefig('../results/q4_GD_(optional).pdf')
     plt.close()
-    plt.savefig('../results/q4_GD_.pdf')
 
     stopping_reason = history['reason']
 
