@@ -54,7 +54,7 @@ def GD(theta0, lr, max_time, tol, x_dat, y_label):
 
     return theta, histry
 
-def run_GD(lr=1e-3, tol=1e-3, path=r'v_math329\HW1\data\mnist_train_test.mat'):
+def run_GD(lr=1e-3, tol=1e-3, path='../data/mnist_train_test.mat'):
     X_train, Y_train, X_test, Y_test = data_loader(path)
     rng = np.random.default_rng(seed=42)
 
@@ -68,6 +68,7 @@ def run_GD(lr=1e-3, tol=1e-3, path=r'v_math329\HW1\data\mnist_train_test.mat'):
     plt.title("Gradient norm during GD")
     plt.savefig('v_math329/HW1/results/q4_GD_(optional).pdf')
     plt.close()
+    plt.savefig('../results/q4_GD_.pdf')
 
     stopping_reason = history['reason']
 
@@ -80,11 +81,11 @@ def run_GD(lr=1e-3, tol=1e-3, path=r'v_math329\HW1\data\mnist_train_test.mat'):
     )
 
     np.savetxt(
-        r'v_math329\HW1\results\q4_history.csv',
+        r'../results/q4_history.csv',
         np.column_stack([history['iteration'], history['f'], history['gnorm']]),
         delimiter=',', header=header_lines, comments='# '
     )
 
-    np.save('v_math329/HW1/results/final_theta.npy', final_theta)
+    np.save('../results/final_theta.npy', final_theta)
 
     return final_theta, history
