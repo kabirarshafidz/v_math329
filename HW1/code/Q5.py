@@ -12,7 +12,7 @@ def q5_plot_convergence(path, history=None, lr=1e-3, tol=1e-3):
     f_vals = history['f']
     gnorm_vals = history['gnorm']
 
-    # Two separate subplots 
+    # Two separate subplotsd
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
 
     # 1. Objective function value
@@ -23,7 +23,7 @@ def q5_plot_convergence(path, history=None, lr=1e-3, tol=1e-3):
     ax1.grid(True, which='both', alpha=0.3)
     ax1.legend()
 
-    ax1.set_yticks([1e3, 1e4])
+    ax1.set_yticks([1e2, 1e3])
 
     # 2. Gradient norm
     ax2.semilogy(iters, gnorm_vals, color='orange', label=r'$\|\nabla f_\lambda(\theta_k)\|$')
