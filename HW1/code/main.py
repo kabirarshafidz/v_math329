@@ -6,7 +6,7 @@ from Q6 import q6_compare
 from Q7 import q7_error_check
 
 DATA_PATH = '../data/mnist_train_test.mat'
-STEP_SIZE = 1e-6
+STEP_SIZE = 1e-3
 TOLERANCE = 1e-3
 
 
