@@ -13,7 +13,7 @@ def q5_plot_convergence(path, history=None, lr=1e-3, tol=1e-3):
     f_vals = history['f']
     gnorm_vals = history['gnorm']
 
-    # Dos subgráficas separadas (apiladas verticalmente)
+    # Dos subgrcd váficas separadas (apiladas verticalmente)
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(7, 8), sharex=True)
 
     # 1. Valor de la función objetivo

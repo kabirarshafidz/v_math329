@@ -6,7 +6,7 @@ from Q6 import q6_compare
 from Q7 import q7_error_check
 
 DATA_PATH = '../data/mnist_train_test.mat'
-STEP_SIZE = 1e-3
+STEP_SIZE = 1e-6
 TOLERANCE = 1e-3
 
 
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     print("Convergence plot generated and saved.")
 
     print_banner("QUESTION 6: Comparing Theory with Observed Convergence")
-    q6_compare(path=DATA_PATH)
+    q6_compare(path=DATA_PATH, history=history)
 
     print_banner("QUESTION 7: Evaluating Classifier Error Rates")
     q7_error_check(path=DATA_PATH, final_theta=final_theta)
