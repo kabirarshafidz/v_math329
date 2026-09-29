@@ -32,7 +32,7 @@ if __name__ == "__main__":
     print("Convergence plot generated and saved.")
 
     print_banner("QUESTION 6: Comparing Theory with Observed Convergence")
-    q6_compare(path=DATA_PATH)
+    q6_compare(path=DATA_PATH, history=history)
 
     print_banner("QUESTION 7: Evaluating Classifier Error Rates")
     q7_error_check(path=DATA_PATH, final_theta=final_theta)
