@@ -24,6 +24,8 @@ def q5_plot_convergence(path, history=None, lr=1e-3, tol=1e-3):
     ax1.grid(True, which='both', alpha=0.3)
     ax1.legend()
 
+    ax1.set_yticks([1e3, 1e4])
+
     # 2. Gradient norm
     ax2.semilogy(iters, gnorm_vals, color='orange', label=r'$\|\nabla f_\lambda(\theta_k)\|$')
     ax2.set_xlabel('Iteration $k$')
