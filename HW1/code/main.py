@@ -1,5 +1,5 @@
 from Q2_Arsha import run_q2
-from Q3_Arsha import run_q3
+from v_math329.HW1.code.Q3 import run_q3
 from Q4 import run_GD
 from Q5 import q5_plot_convergence
 from Q6 import q6_compare
