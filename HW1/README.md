@@ -4,7 +4,7 @@
 
 ## 1. Required Packages (Python)
 
-The codebase requires **Python 3.8+** along with the standard scientific stack:
+The codebase requires **Python 3.12+** along with:
 
 - `numpy`
 - `scipy`
