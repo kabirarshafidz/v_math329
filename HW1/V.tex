@@ -5,6 +5,7 @@
 \newcommand{\groupv}{V}
 \newcommand{\homework}{1}
 
+
 \NeedsTeXFormat{LaTeX2e}
 \usepackage[osf]{mathpazo}
 \usepackage[svgnames]{xcolor}
@@ -90,7 +91,7 @@ For each $i \in \{1, \dots, m\}$, the mapping $\theta \mapsto s_i \langle x_i, \
 
 Because $g(\theta)$ is convex, $f_\lambda(\theta)$ is $\lambda$-strongly convex, by Definition 4.5. By Theorem 4.28., every strongly convex function defined on a convex set admits a unique global minimum.
 
-\vspace{2ex}
+Thus, the set of critical points contains exactly one element, which corresponds to the unique global minimum.
 
 \solution{2}
 
@@ -131,24 +132,26 @@ where $\phi$ and $\phi'$ are applied entrywise. This is the form used in the
 vectorized implementation: one product $X^\top\theta$ for $f_\lambda$, and one
 more product $Xw$ with $w = s \odot \phi'(z)$ for $\nabla f_\lambda$.
 
-\paragraph{Numerical agreement.}
-We evaluated both implementations at five random points
-$\theta = 0.1\,\xi$, $\xi \sim \mathcal{N}(0, I)$, which put margins in all
-three pieces of $\phi$, and computed the relative errors
-$|f_{\text{loop}} - f_{\text{vec}}| / |f_{\text{loop}}|$ and
-$\|\nabla f_{\text{loop}} - \nabla f_{\text{vec}}\| / \|\nabla f_{\text{loop}}\|$.
-The largest were $3.5 \cdot 10^{-15}$ and $5.6 \cdot 10^{-14}$, a small
-multiple of machine precision. The remaining difference comes from summing in a
-different order, so the two implementations agree up to numerical precision.
+\vspace{1mm}
 
-\paragraph{Run time.}
+\textbf{Numerical agreement.}
+We evaluated both implementations at five random points with each
+$\theta \sim \mathcal{U}([-0.01, 0.01]^{785})$ (seed fixed at 42), and computed the relative errors
+$|f_{\text{loop}} - f_{\text{vec}}| / |f_{\text{loop}}|$ and
+$\|\nabla f_{\text{loop}} - \nabla f_{\text{vec}}\| / \|\nabla f_{\text{loop}}\|$. For the non-vectorized baseline, we implemented the dot product with a manual for-loop rather than numpy's \texttt{np.dot}, to emphasize the performance gain from vectorization. The largest were $6.43 \cdot 10^{-15}$ and $5.8 \cdot 10^{-14}$, a small multiple of machine precision. The remaining difference comes from summing in a different order, so the two implementations agree up to numerical precision.
+
+\vspace{1mm}
+
+\textbf{Run time.}
 We timed both versions on the same inputs with Python's \texttt{timeit} and
-kept the fastest of 5 calls. The vectorized $f_\lambda$ took $2.7\,\mathrm{ms}$,
-against $1.93\,\mathrm{s}$ for the for-loop, so it is about $700$ times faster.
+kept the fastest of 5 calls. The vectorized $f_\lambda$ took $2.1\,\mathrm{ms}$,
+against $1.85\,\mathrm{s}$ for the for-loop, so it is about $800-1000$ times faster.
 The gradient improved slightly more, from $3.81\,\mathrm{s}$ to
 $4.8\,\mathrm{ms}$, a speedup of about $800$.
 
-\paragraph{Comment.}
+\vspace{1mm}
+
+\textbf{Comment.}
 The loop version handles the $m(d+1) \approx 10^7$ multiplications one at a
 time in Python, while the vectorized version computes them all at once as
 matrix--vector products in NumPy, which is much faster. Since gradient descent
@@ -158,10 +161,8 @@ vectorized versions from here on.
 
 \solution{3}
 
-We took $\theta = 0.1\,\xi$, so that all three pieces of $\varphi$ are active,
-and a random unit direction $v = \eta / \lVert \eta \rVert$ with
-$\eta \sim \mathcal{N}(0, I)$. Let $g$ be the gradient returned by our code at
-$\theta$. For $101$ log-spaced values of $t \in [10^{-8}, 1]$ we computed
+We took $\theta_0 \sim \mathcal{U}([-0.01, 0.01]^{785})$ (seed fixed at 42) and a random unit direction $v = u / \lVert u \rVert$ with
+$u \sim \mathcal{N}(0, I)$. Let $g$ be the gradient returned by our code at $\theta$. For $101$ log-spaced values of $t \in [10^{-8}, 1]$ we computed
 \[
   E(t) = \bigl\lvert f_\lambda(\theta + t v) - f_\lambda(\theta)
          - t \langle v, g \rangle \bigr\rvert .
@@ -174,16 +175,15 @@ $\theta$. For $101$ log-spaced values of $t \in [10^{-8}, 1]$ we computed
   \label{fig:q3}
 \end{figure}
 
-\paragraph{Slope.} For $10^{-7} \lesssim t \le 1$ the curve follows the $t^2$
-line, and a least-squares fit on $[10^{-6}, 10^{-2}]$ gives a slope of $2.000$.
-Below $t \approx 10^{-7}$ it flattens at about $10^{-12}$ because of round-off.
-With machine precision $\varepsilon \approx 2.2 \cdot 10^{-16}$ and
-$f_\lambda(\theta) \approx 1.4 \cdot 10^4$, the difference
-$f_\lambda(\theta + tv) - f_\lambda(\theta)$ has an error of about
-$\varepsilon f_\lambda(\theta) \approx 3 \cdot 10^{-12}$, which is larger than
-the $t^2$ term for such small $t$.
+\vspace{1mm}
 
-\paragraph{Does it support correctness?} Yes. By Taylor expansion,
+\textbf{Slope.} For $10^{-7} \lesssim t \le 1$ the curve follows the $t^2$
+line, and a least-squares fit on $[10^{-6}, 10^{-2}]$, chosen to stay clear of the floating-point error below $t\approx 10^{-7},$ gives a slope of $2.000$.
+Below $t \approx 10^{-7}$ it flattens at about $10^{-12}$ because of round-off.
+
+\vspace{1mm}
+
+\textbf{Does it support correctness?} Yes. By Taylor expansion,
 \[
   E(t) = \bigl\lvert t \langle v, \nabla f_\lambda(\theta) - g \rangle + O(t^2) \bigr\rvert .
 \]
@@ -191,13 +191,15 @@ A wrong $\langle v, g \rangle$ would leave a linear term that dominates for
 small $t$, giving slope $1$. The observed slope of $2$ means $\langle v, g \rangle$
 matches the directional derivative $\langle v, \nabla f_\lambda(\theta) \rangle$.
 
-\paragraph{Does it prove correctness?} No. We tested one $\theta$ and one $v$,
+\vspace{1mm}
+
+\textbf{Does it prove correctness?} No. We tested one $\theta$ and one $v$,
 so an error orthogonal to $v$, or one that only appears at other points, would
-go unnoticed. The test also compares $g$ only with our own code for $f_\lambda$. If that code were wrong (say, with the wrong $\varphi$), a gradient of that wrong function would still pass.
+go unnoticed. The test also compares $g$ only with our own code for $f_\lambda$. If that code were wrong (say, with the wrong $\phi$), a gradient of that wrong function would still pass.
 
 \solution{4}
 
-We initialised $\theta_0$ by randomly sampling each theta value from a uniform distribution $\theta_i \sim \mathcal{U}(-0.001, 0.001)$ (seed fixed at 42). We ran our GD algorithm with fixed step size $\eta = 10^{-6}$ with the given stopping tolerance of $\|\nabla f_\lambda(\theta_k)\| \leq 10^{-3}\|\nabla f_\lambda(\theta_0)\|$ and a max run time of 3 minutes (using the Python \texttt{time} module). This step size was chosen to sit close to the theoretically safe value $1/L \approx 1.26 \times 10^{-6}$ derived in Question 6.
+We initialized $\theta_0$ by randomly sampling each theta value from a uniform distribution $\theta_0 \sim \mathcal{U}([-0.01, 0.01]^{785})$ (seed fixed at 42). We ran our GD algorithm with fixed step size $\eta = 10^{-6}$ with the given stopping tolerance of $\|\nabla f_\lambda(\theta_k)\| \leq 10^{-3}\|\nabla f_\lambda(\theta_0)\|$ and a max run time of 3 minutes (using the Python \texttt{time} module). This step size was chosen to sit close to the theoretically safe value $1/L \approx 1.26 \times 10^{-6}$ derived in Question 6.
 
 Before computing question 6, We initially selected $\eta = 10^{-3}$ by trial and error, as opposed to smaller values that would take longer to converge, or larger values that would cause the gradients to oscillate or explode; this run converged to the tolerance in $164$ iterations. Choosing instead $\eta \approx 1/L$, as motivated by Theorem 4.31 in Question 6, produces a visibly smoother, more gradual convergence trajectory (seen in question 5) with smaller objective value for $f_\lambda$, though at a considerably slower rate, consistent with the very large condition number $\kappa \approx 1.59 \times 10^8$ computed there. Despite this large gap in convergence speed, we found the resulting classifiers to perform comparably at the classification stage (Question 7), with $\eta = 10^{-3}$ yielding a somewhat higher (but still low) test error rate than $\eta = 10^{-6}$. This is consistent with the discussion in Question 6: $1/L$ guarantees convergence but is a conservative, worst-case-safe choice, while a larger empirical step size reaches a comparably good solution far more quickly.
 
@@ -240,16 +242,17 @@ Theorem 4.31 applies at step size $\eta = 1/L \approx 1.26 \times 10^{-6}$, givi
 \]
 a rate so close to $1$ that meaningful progress under this exact step would require far more iterations than we could run in $3$ minutes.
 
-Our actual run used $\eta = 10^{-3}$, almost $10^3$ times larger than $1/L$, so Theorem 4.31 does not strictly apply to our chosen step size; nonetheless, at $k=82$ the theorem's rate at $\eta=1/L$ predicts $f(\theta_k)-f(\theta^\star) \leq \left(1-\tfrac{1}{\kappa}\right)^k(f(\theta_0)-f(\theta^\star)) \approx 9.87\times10^3$, while our observed gap was $\approx 1.29\times10^3$, which is about $7.7\times$ smaller, and our run converged to the stopping tolerance in just $164$ iterations overall. This confirms $1/L$ is a \emph{sufficient}, conservative step size for at least linear convergence, not a \emph{necessary} one, our run converges markedly faster than this guaranteed rate.
+Although the run plotted in Question 5 uses $\eta = 10^{-6}$, we also evaluated $\eta = 10^{-3}$ due to faster convergence. This step size is almost $10^3$ times larger than $1/L$, so Theorem 4.31 does not strictly apply to our chosen step size; nonetheless, at $k=82$ the theorem's rate at $\eta=1/L$ predicts $f(\theta_k)-f(\theta^\star) \leq \left(1-\tfrac{1}{\kappa}\right)^k(f(\theta_0)-f(\theta^\star)) \approx 9.87\times10^3$, while our observed gap was $\approx 1.29\times10^3$, which is about $7.7\times$ smaller, and our run converged to the stopping tolerance in just $164$ iterations overall. This confirms $1/L$ is a \emph{sufficient}, conservative step size for at least linear convergence, not a \emph{necessary} one, our run converges markedly faster than this guaranteed rate.
 
 \solution{7}
 
-The classifier achieves very low error on both sets (train: $0.063\%$, test: $0.047\%$), with the test error slightly lower than the train error. This indicates the strong generalization of the model. Note that distinguishing handwritten $0$s from $1$s is a comparatively easy task, and the model shows no sign of overfitting to the training data. The near identical test performance (even slightly better than train performance) is consistent with the strong convexity of $f_\lambda$, which guarantees a unique global minimizer, gradient descent therefore converges to a well-defined, stable solution rather than an arbitrary local minimum that might overfit to the training set.
+The classifier achieves very low error on both sets (train: $0.063\%$, test: $0.047\%$), with the test error slightly lower than the train error. This indicates the strong generalization of the model. Note that distinguishing handwritten $0$s from $1$s is a comparatively easy task, and the model shows no sign of overfitting to the training data. The near identical test performance (even slightly better than train performance) is consistent with the strong convexity of $f_\lambda$, which guarantees a unique global minimizer, gradient descent therefore converges to a well-defined, stable solution rather than an arbitrary local minimum.
+% that might overfit to the training set.
 
 \solution{8}
 We have learned that $f_\lambda$ is used instead of $f$ because if $f$ is convex, then $f_\lambda$ is strongly convex, which has nice properties for gradient descent. It seems reasonable to assume that for a small $\lambda$ the global minimum we found should be close, and even if not proven, it seems that $f_\lambda$ converges to $f$ as $\lim_{\lambda \to 0^+}$.
 
-Furthermore, $\frac{1}{L}$ in theory and practice on this small scale problem is a good step size, but it can be too conservative as it assures convergence without guaranteeing the fastest rate. With a constant step size, we found the trade off that a larger step size like $10^{-3}$ converges faster initially but risks overshooting, while a smaller step size like $10^{-6}$ ensures close proximity to the minimum but converges very slowly. This made it more apparent, the concepts from lecture 3, as for why in industry, step sizes are usually varied dynamically during training (for example line search) rather than using a constant step size, getting the best of both worlds.
+Furthermore, $\frac{1}{L}$ in theory and practice on this small scale problem is a good step size, but it can be too conservative as it assures convergence without guaranteeing the fastest rate. With a constant step size, we found the trade off that a larger step size like $10^{-3}$ converges faster initially but risks overshooting, while a smaller step size like $10^{-6}$ (closer to the theoretical $\frac{1}{L}$ ensures close proximity to the minimum but converges very slowly. This made it more apparent, the concepts from lecture 3, as for why in industry, step sizes are usually varied dynamically during training (for example line search) rather than using a constant step size, getting the best of both worlds.
 
-We also learned that "vectorizing" our code is an efficient way to do complex computations involving vectors and matrices by avoiding traditional for-loops, which are computationally costly. Moreover, it also reduces potential errors related to computer operations.
+We also learned that "vectorizing" our code is an efficient way to do complex computations involving vectors and matrices by avoiding traditional for-loops, which are computationally more costly, by exploiting the CPU capabilites that can process multiple numbers in parallel instead of one at a time. Moreover, it also reduces potential errors related to computer operations.
 \end{document}
