@@ -139,7 +139,7 @@ def verify(y, X, rng, lambda_const=0.005, trials=5, tol=1e-10):
 
     for trial in range(trials):
         # Draw random parameter vector from standard Gaussian
-        theta = 0.1 * rng.standard_normal(d)
+        theta = rng.uniform(low=-0.01, high=0.01, size=d)
 
         # Compute values for both implementations
         l_loop = loss_regularized(y, X, theta, lambda_const, vectorized=False)
@@ -173,7 +173,9 @@ def time_comparison(y, X, rng, lambda_const=0.005):
     """
     Measures and compares runtimes between explicit loops and vectorized routines.
     """
-    theta = 0.1 * rng.standard_normal(X.shape[1])
+    d = X.shape[1]
+
+    theta = rng.uniform(low=-0.01, high=0.01, size=d)
 
     for name, fn in [("loss", loss_regularized), ("grad", grad_regularized)]:
         t_loop = bench(fn, y, X, theta, lambda_const, False)

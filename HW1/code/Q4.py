@@ -63,7 +63,9 @@ def run_GD(lr=1e-3, tol=1e-3, path='../data/mnist_train_test.mat'):
     X_train, Y_train, X_test, Y_test = data_loader(path)
     rng = np.random.default_rng(seed=42)
 
-    theta0 = rng.uniform(low=-0.01, high=0.01, size=785)
+    d = X_train.shape[1]
+
+    theta0 = rng.uniform(low=-0.01, high=0.01, size=d)
 
     final_theta, history = GD(theta0=theta0, lr=lr, max_time=3, x_dat=X_train, y_label=Y_train, tol=tol)
 
